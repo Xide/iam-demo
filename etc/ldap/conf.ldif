@@ -1,0 +1,44 @@
+dn: ou=users,dc=demo,dc=iam
+objectClass: organizationalUnit
+ou: users
+
+dn: cn=billy,ou=users,dc=demo,dc=iam
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+sn: admin
+cn: admin
+mail: billy@demo.iam
+userpassword: password
+
+# Service accounts definitions
+dn: ou=serviceaccounts,dc=demo,dc=iam
+objectClass: organizationalUnit
+ou: roles
+
+dn: cn=dex,ou=serviceaccounts,dc=demo,dc=iam
+objectClass: person
+cn: dex
+sn: Service Account
+description: Service account for dex IDP 
+userPassword: d1d1a68f81dded86820171ae029725ce
+
+
+# Roles definitions.
+
+dn: ou=roles,dc=demo,dc=iam
+objectClass: organizationalUnit
+ou: roles
+
+dn: cn=admin,ou=roles,dc=demo,dc=iam
+objectClass: groupOfNames
+cn: admin
+member: cn=billy,ou=users,dc=demo,dc=iam
+
+dn: cn=readonly,ou=roles,dc=demo,dc=iam
+objectClass: groupOfNames
+cn: readonly
+member: cn=dex,ou=serviceaccounts,dc=demo,dc=iam
+
+
+

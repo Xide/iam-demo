@@ -1,0 +1,83 @@
+# The base path of dex and the external name of the OpenID Connect service.
+# This is the canonical URL that all clients MUST use to refer to dex. If a
+# path is provided, dex's HTTP service will listen at a non-root URL.
+issuer: http://idp.lan:5556/dex
+
+storage:
+  type: sqlite3
+  config:
+    file: ":memory:" 
+
+# Let dex keep a list of passwords which can be used to login to dex.
+enablePasswordDB: false
+
+# Configuration for the HTTP endpoints.
+web:
+  http: 0.0.0.0:5556
+
+# Configuration for telemetry
+telemetry:
+  http: 0.0.0.0:5558
+
+# Configuration for the expiration time durations.
+expiry:
+  signingKeys: "6h"
+  idTokens: "24h"
+
+# Options for controlling the logger.
+logger:
+  level: "debug"
+  format: "text" # can also be "json"
+
+# Client applications
+## Here, the gatekeeper is configured straight in Dex
+## configuration file, a more advanced setup can use
+## the gRPC API to add them dynamicaly
+staticClients:
+- id: gatekeeper
+  redirectURIs:
+  - 'http://app.lan/oauth/callback'
+  name: 'Gatekeeper'
+  secret: b3b23e049b1acad7969cff4fbcf3d16b 
+
+connectors:
+- type: ldap
+  name: OpenLDAP
+  id: ldap
+  config:
+    host: ldap:389
+
+    # No TLS for this setup.
+    insecureNoSSL: true
+
+    # SHOULD be a read-only user.
+    bindDN: cn=dex,ou=serviceaccounts,dc=demo,dc=iam
+    bindPW: d1d1a68f81dded86820171ae029725ce
+     
+
+    usernamePrompt: Username
+
+    userSearch:
+      baseDN: ou=users,dc=demo,dc=iam
+      filter: "(objectClass=person)"
+      username: cn
+      # "DN" (case sensitive) is a special attribute name. It indicates that
+      # this value should be taken from the entity's DN not an attribute on
+      # the entity.
+      idAttr: DN
+      emailAttr: mail
+      nameAttr: cn
+
+    groupSearch:
+      baseDN: ou=roles,dc=demo,dc=iam
+      filter: "(objectClass=groupOfNames)"
+
+      # A user is a member of a group when their DN matches
+      # the value of a "member" attribute on the group entity.
+      userAttr: DN
+      groupAttr: member
+
+      # The group name should be the "cn" value.
+      nameAttr: cn
+
+

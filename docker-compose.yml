@@ -1,0 +1,67 @@
+version: "3"
+
+networks:
+  public: {}
+  protected: {}
+  app: {}
+
+services:
+  reverse_proxy:
+    image: nginx
+    ports: 
+      - "80:80/tcp"
+      - "443:443/tcp"
+      # Dex port
+      - "5556:5556/tcp" 
+    volumes:
+      - "./etc/reverse_proxy:/etc/nginx"
+    restart: unless-stopped
+    networks:
+      - public
+
+  ldap:
+    image: osixia/openldap:1.3.0
+    environment:
+      - LDAP_ORGANISATION=Demo IAM
+      - LDAP_DOMAIN=demo.iam
+      - LDAP_ADMIN_PASSWORD=secret
+    volumes:
+      - ./etc/ldap/conf.ldif:/container/service/slapd/assets/config/bootstrap/ldif/conf.ldif:ro
+      - ./etc/ldap/acl.sh:/acl.sh:ro
+    command: ["/bin/sh","-c", "/bin/sh /acl.sh"]
+    networks:
+      - protected
+
+  dex:
+    depends_on: 
+      - ldap
+    volumes:
+      - ./etc/dex/config.yml:/conf.yml:ro
+    image: quay.io/dexidp/dex
+    command: serve /conf.yml
+    networks:
+      protected: {}
+      app:
+        aliases:
+          - idp.lan
+      public:
+        aliases:
+          - idp.lan
+
+  gatekeeper:
+    image: quay.io/keycloak/keycloak-gatekeeper
+    volumes:
+      - ./etc/gatekeeper/config.yml:/conf.yml:ro
+    command: --config /conf.yml
+    networks:
+      - app
+      - public
+
+  app:
+    image: python:3
+    volumes:
+      - ./etc/app/www:/www:ro
+    entrypoint: python
+    command: -m http.server --directory /www
+    networks:
+      - app

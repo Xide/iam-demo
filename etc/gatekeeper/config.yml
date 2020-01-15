@@ -1,0 +1,18 @@
+client-id: gatekeeper
+discovery-url: 'http://idp.lan:5556/dex/.well-known/openid-configuration'
+enable-security-filter: false
+secure-cookie: false
+enable-default-deny: false
+client-secret: b3b23e049b1acad7969cff4fbcf3d16b 
+listen: :8064
+redirection-url: http://app.lan
+upstream-url: http://app:8000
+upstream-keepalives: true
+scopes:
+  - groups
+resources:
+- uri: /private/*
+  methods:
+  - GET
+  groups:
+  - admin
